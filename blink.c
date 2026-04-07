@@ -90,7 +90,10 @@ int main(void) {
         for (int i = 0; i < BUTTONS; i++) {
             if (poll_states[i]) {
                 bool level;
-                gpio_read(gpios[i], &level);
+                if (gpio_read(gpios[i], &level) < 0) {
+                    fprintf(stderr, "gpio_read(): %s\n", gpio_errmsg(gpios[i]));
+                    exit(1);
+                }
                 if (!level) {
                     clicked_idx = i;
                 }
