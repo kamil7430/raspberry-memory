@@ -30,9 +30,7 @@ int main(void) {
         gpio_new(), gpio_new(), gpio_new(), gpio_new(), 
     };
 
-    puts("Initializing the game...");
-
-    // Open gpios
+    puts("Opening the gpios...");
     for (int i = 0; i < DIODES; i++) {
         if (gpio_open(gpios[i], FILE_PATH, PINS[i], GPIO_DIR_OUT_LOW) < 0) {
             fprintf(stderr, "gpio_open(): %s\n", gpio_errmsg(gpios[i]));
@@ -46,7 +44,7 @@ int main(void) {
         }
     }
 
-    // Set edge for buttons
+    puts("Setting edges for buttons...");
     for (int i = DIODES - 1; i < NUM_GPIOS; i++) {
         if (gpio_set_edge(gpios[i], GPIO_EDGE_RISING) < 0) {
             fprintf(stderr, "gpio_set_edge(): %s\n", gpio_errmsg(gpios[i]));
@@ -54,15 +52,13 @@ int main(void) {
         }
     }
 
-    // Initialize game
+    puts("Initializing the game...");
     int sequence[GAME_LENGTH];
     for (int i = 0; i < GAME_LENGTH; i++) {
         sequence[i] = rand() % BUTTONS;
     }
 
     puts("Sequence showing phase starts!");
-
-    // Sequence showing phase
     for (int i = 0; i < GAME_LENGTH; i++) {
         if (gpio_write(gpios[sequence[i]], true) < 0) {
             fprintf(stderr, "gpio_write(): %s\n", gpio_errmsg(gpios[sequence[i]]));
@@ -77,8 +73,6 @@ int main(void) {
     }
 
     puts("Sequence guessing phase starts!");
-
-    // Sequence guessing phase
     bool poll_states[BUTTONS] = {};
     while (1) {
         if (gpio_poll_multiple(gpios + DIODES, BUTTONS, -1, poll_states) < 0) {
@@ -126,11 +120,12 @@ int main(void) {
         }
     }
 
-    // Close gpios
+    puts("Cleaning up the gpios...");
     for (int i = 0; i < NUM_GPIOS; i++) {
         gpio_close(gpios[i]);
         gpio_free(gpios[i]);
     }
 
+    puts("Closing... Goodbye!");
     return 0;
 }
