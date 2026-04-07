@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.28)
-project(blink C)
+project(memory C)
 
 set(CMAKE_C_STANDARD 11)
 
-add_executable(blink blink.c)
+add_executable(memory memory.c)
 
-target_link_libraries(blink periphery)
+target_link_libraries(memory periphery)
