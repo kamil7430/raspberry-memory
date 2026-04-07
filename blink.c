@@ -1,8 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <unistd.h>
-#include <periphery/gpio.h>
+// #include <periphery/gpio.h>
+
+#include "includes/gpio.h"
 
 int main(void) {
     const int NUM_GPIOS = 8;
@@ -25,14 +28,31 @@ int main(void) {
 
     // Open gpios
     for (int i = 0; i < NUM_GPIOS / 2; i++) {
-        if (gpio_open(gpios[i], GPIO_FILE_PATH, PINS[i], GPIO_DIR_OUT_LOW) < 0) {
-            fprintf(stderr, "gpio_open(): %s\n", gpio_errmsg(gpio_out));
+        if (gpio_open(gpios[i], FILE_PATH, PINS[i], GPIO_DIR_OUT_LOW) < 0) {
+            fprintf(stderr, "gpio_open(): %s\n", gpio_errmsg(gpios[i]));
             exit(1);
-	}
-        if (gpio_open(gpios[i + NUM_GPIOS / 2], GPIO_FILE_PATH, PINS[i + NUM_GPIOS / 2], GPIO_DIR_IN) < 0) {
-            fprintf(stderr, "gpio_open(): %s\n", gpio_errmsg(gpio_out));
+        }
+        if (gpio_open(gpios[i + NUM_GPIOS / 2], FILE_PATH, PINS[i + NUM_GPIOS / 2], GPIO_DIR_IN) < 0) {
+            fprintf(stderr, "gpio_open(): %s\n", gpio_errmsg(gpios[i + NUM_GPIOS / 2]));
             exit(1);
-	}
+        }
+    }
+
+    // Set debounce period
+    const uint32_t debounce_us = 20000;
+    for (int i = 0; i < NUM_GPIOS; i++) {
+        if (gpio_set_debounce_us(gpios[i], debounce_us) < 0) {
+            fprintf(stderr, "gpio_set_debounce_us(): %s\n", gpio_errmsg(gpios[i]));
+            exit(1);
+        }
+    }
+
+    // Set edge for buttons
+    for (int i = NUM_GPIOS / 2 - 1; i < NUM_GPIOS; i++) {
+        if (gpio_set_edge(gpios[i], GPIO_EDGE_RISING) < 0) {
+            fprintf(stderr, "gpio_set_edge(): %s\n", gpio_errmsg(gpios[i]));
+            exit(1);
+        }
     }
 
     // Close gpios
