@@ -42,15 +42,6 @@ int main(void) {
         }
     }
 
-    // Set debounce period
-    const uint32_t debounce_us = 20000;
-    for (int i = 0; i < NUM_GPIOS; i++) {
-        if (gpio_set_debounce_us(gpios[i], debounce_us) < 0) {
-            fprintf(stderr, "gpio_set_debounce_us(): %s\n", gpio_errmsg(gpios[i]));
-            exit(1);
-        }
-    }
-
     // Set edge for buttons
     for (int i = DIODES - 1; i < NUM_GPIOS; i++) {
         if (gpio_set_edge(gpios[i], GPIO_EDGE_RISING) < 0) {
@@ -62,13 +53,44 @@ int main(void) {
     // Main game loop
     bool poll_states[BUTTONS] = {};
     while (true) {
-        int ret = gpio_poll_multiple(gpios + DIODES, BUTTONS, -1, poll_states);
-
-        if (ret < 0)
+        if (gpio_poll_multiple(gpios + DIODES, BUTTONS, -1, poll_states) < 0)
             break;
 
+        // Sleep for 20ms since the kernel does not support debounce
+        usleep(20000);
+
         if (poll_states[0]) {
-            printf("Kliknieto przycisk 1\n");
+            bool level;
+            gpio_read(gpios[0], &level);
+
+            if (!level) {
+                printf("Kliknieto przycisk 1\n");
+            }
+        }
+
+        if (poll_states[1]) {
+            bool level;
+            gpio_read(gpios[1], &level);
+
+            if (!level) {
+                printf("Kliknieto przycisk 2\n");
+            }
+        }
+        if (poll_states[2]) {
+            bool level;
+            gpio_read(gpios[2], &level);
+
+            if (!level) {
+                printf("Kliknieto przycisk 3\n");
+            }
+        }
+        if (poll_states[3]) {
+            bool level;
+            gpio_read(gpios[3], &level);
+
+            if (!level) {
+                printf("Kliknieto przycisk 4\n");
+            }
         }
     }
 
