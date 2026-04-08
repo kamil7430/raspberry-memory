@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
+#include <time.h>
 #include <unistd.h>
 #include <periphery/gpio.h>
 
@@ -13,9 +15,9 @@ int main(void) {
 
     const int PINS[] ={
         // diodes
-        12, 13, 14, 15,
+        27, 23, 22, 24,
         // buttons
-        16, 17, 18, 19,
+        18, 17, 10, 25,
     };
 
     const char *FILE_PATH = "/dev/gpiochip0";
@@ -30,6 +32,8 @@ int main(void) {
         gpio_new(), gpio_new(), gpio_new(), gpio_new(), 
     };
 
+    srand(time(NULL));
+
     puts("Opening the gpios...");
     for (int i = 0; i < DIODES; i++) {
         if (gpio_open(gpios[i], FILE_PATH, PINS[i], GPIO_DIR_OUT_LOW) < 0) {
@@ -37,7 +41,7 @@ int main(void) {
             exit(1);
         }
     }
-    for (int i = DIODES - 1; i < NUM_GPIOS; i++) {
+    for (int i = DIODES; i < NUM_GPIOS; i++) {
         if (gpio_open(gpios[i], FILE_PATH, PINS[i], GPIO_DIR_IN) < 0) {
             fprintf(stderr, "gpio_open(): %s\n", gpio_errmsg(gpios[i]));
             exit(1);
@@ -45,8 +49,8 @@ int main(void) {
     }
 
     puts("Setting edges for buttons...");
-    for (int i = DIODES - 1; i < NUM_GPIOS; i++) {
-        if (gpio_set_edge(gpios[i], GPIO_EDGE_RISING) < 0) {
+    for (int i = DIODES; i < NUM_GPIOS; i++) {
+        if (gpio_set_edge(gpios[i], GPIO_EDGE_FALLING) < 0) {
             fprintf(stderr, "gpio_set_edge(): %s\n", gpio_errmsg(gpios[i]));
             exit(1);
         }
@@ -89,9 +93,10 @@ int main(void) {
         int clicked_idx = -1;
         for (int i = 0; i < BUTTONS; i++) {
             if (poll_states[i]) {
+                poll_states[i] = false;
                 bool level;
-                if (gpio_read(gpios[i], &level) < 0) {
-                    fprintf(stderr, "gpio_read(): %s\n", gpio_errmsg(gpios[i]));
+                if (gpio_read(gpios[DIODES + i], &level) < 0) {
+                    fprintf(stderr, "gpio_read(): %s\n", gpio_errmsg(gpios[DIODES + i]));
                     exit(1);
                 }
                 if (!level) {
@@ -109,8 +114,16 @@ int main(void) {
                     puts("Congratulations! You won!");
                     break;
                 }
-                sleep(1);
-                printf("Make your %d choice now!", seq_idx + 1);
+
+                bool level;
+                do {
+                    if (gpio_read(gpios[DIODES + clicked_idx], &level) < 0) {
+                        fprintf(stderr, "gpio_read(): %s\n", gpio_errmsg(gpios[DIODES + clicked_idx]));
+                        exit(1);
+                    }
+                    usleep(20000);
+                } while (!level);
+                printf("Make your %d choice now!\n", seq_idx + 1);
             } else {
                 puts("Unfortunately, this is incorrect choice :(\nYou lost!");
                 break;
