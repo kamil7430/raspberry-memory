@@ -1,0 +1,11 @@
+config BR2_PACKAGE_MEMORY_GAME
+	bool "memory_game"
+	depends on BR2_PACKAGE_C_PERIPHERY
+	help
+	  Simple memory game using GPIO to interact with diodes and buttons.
+	  Depends on c-periphery library.
+
+	  https://github.com/kamil7430/raspberry-memory
+
+comment "memory depends on periphery package"
+	depends on !BR2_PACKAGE_C_PERIPHERY
